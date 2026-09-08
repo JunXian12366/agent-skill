@@ -1,0 +1,126 @@
+PMP Java/Spring Copilot 技能与提示词包
+==============================
+除非另有要求，否则使用简体中文回复。
+
+状态与范围
+---------------
+本包位于 D:\taiguli\PMP\agent，是独立于业务仓库、尚未激活的外部包。
+保存这些文件不会加载指令、注册技能或激活提示词。
+本包不会更改业务仓库文件或用户配置。
+此处记录的 Java/Spring 版本仅用于说明当前上下文，并非升级计划。
+
+文件清单
+---------
+copilot-instructions.md                共享项目约定与安全要求
+skills\pmp-java-feature\SKILL.md         明确授权的功能实现与代码修改
+skills\pmp-java-diagnose\SKILL.md        聚焦的分析与诊断
+skills\pmp-java-review\SKILL.md          只读审查，提供可采取行动的问题
+skills\pmp-java-tests\SKILL.md           隔离且仅限测试范围的任务
+prompts\pmp-analyze.prompt.md            流程与改进分析任务输入模板
+prompts\pmp-feature.prompt.md            功能开发任务输入模板
+prompts\pmp-diagnose.prompt.md           异常调查任务输入模板
+prompts\pmp-review.prompt.md             差异/文件审查任务输入模板
+prompts\pmp-tests.prompt.md              测试任务输入模板
+
+激活方式（需手动操作；目前未安装任何内容）
+-----------------------------------------------------
+1. 首选：项目范围内配置
+   检查 copilot-instructions.md 后，将其复制或合并到目标仓库的
+   .github\copilot-instructions.md。不要覆盖现有指令。
+   将四个技能文件夹复制到 .github\skills，保留各自的 SKILL.md。
+   根指令提供通用约束；技能描述用于匹配具体任务。
+   此目录布局可保留各技能对指令文件的相对引用。
+   这些是用户可选的手动操作，并非本任务已执行的改动。
+
+2. 备选：Copilot CLI 外部技能
+   在交互式 CLI 会话中运行 /skills add，并按位置选择流程选取
+   D:\taiguli\PMP\agent\skills。
+   然后使用 /skills reload，再通过 /skills list 或 /skills info pmp-java-feature
+   确认技能已被发现。不要假定存在文档未说明的、通过位置参数添加技能的语法。
+   此操作只注册技能，不会加载外部根指令文件或提示词。
+   要应用共享约束，可采用上面的项目指令合并方式，或显式附加
+   @D:\taiguli\PMP\agent\copilot-instructions.md，并要求助手将其作为任务指导。
+   读取引用文件不等于激活。若此上下文不应影响其他项目，应优先使用项目本地技能。
+   支持的技能根目录还包括仓库内的 .claude\skills 和 .agents\skills，
+   以及用户主目录下的 .copilot\skills 和 .agents\skills。
+   没有必要时，不要将本包重复放入多个技能根目录。
+
+3. IDE 提示词
+   提示词文件是受支持的 VS Code、Visual Studio 和 JetBrains Copilot 集成中的
+   原生功能，并非 CLI 原生提示词命令。
+   将提示词复制到目标仓库的 .github\prompts，并配合方式 1 中的指令和技能，
+   以保留相对引用。
+   使用对应 IDE 的提示词选择流程；命令和可用性因 IDE 及版本而异。
+   不要假定各 IDE 共用同一种斜杠命令接口。
+   agent: 'agent' 选择的是具备执行能力的代理，并不会强制只读访问。
+   任务正文规定的是行为边界，而非安全沙箱。
+
+4. 无需安装，在 CLI 中使用提示词
+   通过绝对路径形式的 @file 附加提示词，并明确要求将其正文作为任务模板执行。
+   在同一条消息中填写必填占位内容，或复制正文后替换占位内容。
+   未填写的可选字段采用模板中声明的默认值。
+   不要在 CLI 中使用 ${input} 替换语法或 IDE 的斜杠提示词命令。
+   若对应的 SKILL.md 和根指令尚不可用，请显式附加它们。
+   如果客户端无法解析相对引用，请附加其绝对路径；
+   不要假定链接指向的文件已经被读取。
+
+CLI 使用示例（发送前替换尖括号中的占位内容）
+------------------------------------------------------------
+请将 @D:\taiguli\PMP\agent\prompts\pmp-feature.prompt.md 作为任务模板执行。
+请应用 @D:\taiguli\PMP\agent\copilot-instructions.md，并遵循
+@D:\taiguli\PMP\agent\skills\pmp-java-feature\SKILL.md。
+需求：<描述需求>；范围：<文件或路由>；
+验收标准：<可观察的行为>；已授权的接口契约变更：无。
+
+请将 @D:\taiguli\PMP\agent\prompts\pmp-analyze.prompt.md 作为任务模板执行。
+请应用 @D:\taiguli\PMP\agent\copilot-instructions.md，并遵循
+@D:\taiguli\PMP\agent\skills\pmp-java-diagnose\SKILL.md。
+问题：解释邮件模板的查询流程及向外部服务委托处理的过程。
+范围：EmailTemplateController、IEmailTemplateService、
+EmailTemplateServiceImpl 和 EmailTemplateDataClient。不得编辑或执行。
+
+只读审查请使用 pmp-review.prompt.md 搭配 pmp-java-review，并指定差异或文件范围。
+测试覆盖任务请使用 pmp-tests.prompt.md 搭配 pmp-java-tests；
+若不希望编辑或执行，请选择“仅提出方案”。
+
+验证与操作说明
+------------------------------
+不要求使用 Wrapper，也不引入新的测试依赖。执行 Maven 前请先检查所选测试。
+现有 EmailTemplateControllerTest.java 声明的类是 ApprovalFlowControllerTest；
+精确选择测试时应使用实际类名，而非文件名。不要顺手修正这种命名不一致。
+私有 Azure Artifacts 依赖解析可能阻碍测试。应报告阻碍及尚未验证的检查，
+不得泄露或更改凭据。
+仅涉及文档的包验证无需构建应用。
+
+结构设计说明
+------------------
+共享约束集中在一个简短的指令文件中。四个职责明确的技能分别负责实现、调查、
+审查和测试；分析复用诊断技能，避免重复。提示词用于收集任务输入并声明默认值，
+而非规定工具操作清单。明确适用条件和排除条件，可减少意外修改。
+以聚焦的证据和完成标准，取代强制全仓扫描、形式化的计划审批，
+以及没有证据支持的优化结论。
+
+简要手动验收场景
+---------------------------------
+- 技能发现：完成可选配置后，用 list/info 按四个技能的准确名称逐一检查。
+  另行确认指令已加载；仅列出技能还不够。
+- 分析：要求解释邮件模板流程。预期引用源码路径，不编辑、不执行，
+  也不凭空添加数据库或 AMQP 消费者。
+- 功能开发：提供具体且已授权的需求及验收标准。预期完成范围内的实现和隔离回归检查；
+  保持 API 大小写，保留无关改动，包括现有未跟踪文件 out.txt。
+- 诊断：以“仅分析”模式提供已脱敏的故障信息。预期区分观察结果与假设，
+  不做修改；修复需获得明确授权。
+- 审查：提供差异，但不要求执行验证。预期仅检查源码，报告可采取行动的问题
+  （或说明未发现），不编辑，也不运行测试。
+- 测试：要求覆盖载荷/传递逻辑。预期仅修改测试、模拟外部依赖，并使用实际 Java 类的
+  测试选择器。若需修改生产代码，应暂停这部分修改，等待批准。
+  Maven 运行受阻时，不得报告为通过。
+- 占位内容检查：提交未填写功能需求的模板，且不提供其他上下文。
+  预期指出缺失的关键信息，而非编造业务逻辑。
+- 安全：请求调查，但不批准集成操作。预期不连接真实服务、不启动应用、
+  不执行远程写入、部署或提交，也不泄露密钥。
+
+官方加载说明参考
+---------------------------
+https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills
+https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files/your-first-prompt-file

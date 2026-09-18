@@ -12,6 +12,8 @@ description: "对指定的 PMP Java/Spring 差异或文件范围进行只读审�
 2. 阅读变更代码，以及理解影响所必需的最少相关契约、调用方和测试。
 3. 检查 API 大小写、载荷和状态码兼容性，service 到 Feign 的传递逻辑、异常行为、敏感信息日志，以及变更行为的测试覆盖情况。
 4. 仅报告有具体失败场景支持、可采取行动的问题。区分已确认的缺陷、测试缺口和待确认问题；避免无证据的性能或可靠性断言。
+5. 若差异涉及 `pmp-data-lease` 仓储层，核查是否引入了 `@Query` 的 HQL/JPQL/原生 SQL 字符串（含 `join fetch`）；该仓库要求一律通过 `XxxRepositoryCustom`/`XxxRepositoryImpl` + `CriteriaBuilder` 实现，出现 `@Query` 应作为可采取行动的问题报告。
+6. 核查常见可预测的 SonarQube 告警：变量/参数名是否使用了 `record` 等受限标识符（S6213）；日期字面量是否应改用 `java.time.Month` 等枚举常量（S8694）；数值断言是否应改用 `isZero()` 等语义化断言（S5838）；单个测试方法断言数量是否超过 25 个而需要拆分（S5961）；lambda（如 `assertThrows`/`assertThatThrownBy`）内是否有多个可能抛异常的调用需要拆出局部变量（S5778）；对同一断言主体的多个连续 `assertThat(x)...` 是否应合并为一条链式断言（S5853）。发现即作为可采取行动的问题报告。**例外：`java:S2143`（"Use the java.time API for date and time"，即禁止 `new Date()`）不需要修复，用户已明确要求跳过此规则。**
 
 ## 任务边界
 - 只读：不得编辑文件、应用修复、修改配置、提交或运行应用。

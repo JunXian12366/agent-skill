@@ -4,9 +4,9 @@ PMP Java/Spring Copilot 技能与提示词包
 
 状态与范围
 ---------------
-本包位于 D:\taiguli\PMP\agent，是独立于业务仓库、尚未激活的外部包。
+本包位于 D:\taiguli\PMP\agent-skill，是独立于业务仓库的外部包。
 保存这些文件不会加载指令、注册技能或激活提示词。
-本包不会更改业务仓库文件或用户配置。
+仅保存本包不会更改业务仓库文件或用户配置；项目副本需单独同步。
 此处记录的 Java/Spring 版本仅用于说明当前上下文，并非升级计划。
 
 文件清单
@@ -16,30 +16,31 @@ skills\pmp-java-feature\SKILL.md         明确授权的功能实现与代码修
 skills\pmp-java-diagnose\SKILL.md        聚焦的分析与诊断
 skills\pmp-java-review\SKILL.md          只读审查，提供可采取行动的问题
 skills\pmp-java-tests\SKILL.md           隔离且仅限测试范围的任务
+skills\pmp-java-convert-from-csharp\SKILL.md  C#/.NET 业务逻辑转换为 PMP Java
 prompts\pmp-analyze.prompt.md            流程与改进分析任务输入模板
 prompts\pmp-feature.prompt.md            功能开发任务输入模板
 prompts\pmp-diagnose.prompt.md           异常调查任务输入模板
 prompts\pmp-review.prompt.md             差异/文件审查任务输入模板
 prompts\pmp-tests.prompt.md              测试任务输入模板
 
-激活方式（需手动操作；目前未安装任何内容）
+激活方式（按目标仓库选择，已有副本应合并更新）
 -----------------------------------------------------
 1. 首选：项目范围内配置
    检查 copilot-instructions.md 后，将其复制或合并到目标仓库的
    .github\copilot-instructions.md。不要覆盖现有指令。
-   将四个技能文件夹复制到 .github\skills，保留各自的 SKILL.md。
+   将五个技能文件夹复制到 .github\skills，保留各自的 SKILL.md。
    根指令提供通用约束；技能描述用于匹配具体任务。
    此目录布局可保留各技能对指令文件的相对引用。
-   这些是用户可选的手动操作，并非本任务已执行的改动。
+   当前通知服务仓库已添加转换技能副本；其他仓库不会自动同步。
 
 2. 备选：Copilot CLI 外部技能
    在交互式 CLI 会话中运行 /skills add，并按位置选择流程选取
-   D:\taiguli\PMP\agent\skills。
+   D:\taiguli\PMP\agent-skill\skills。
    然后使用 /skills reload，再通过 /skills list 或 /skills info pmp-java-feature
    确认技能已被发现。不要假定存在文档未说明的、通过位置参数添加技能的语法。
    此操作只注册技能，不会加载外部根指令文件或提示词。
    要应用共享约束，可采用上面的项目指令合并方式，或显式附加
-   @D:\taiguli\PMP\agent\copilot-instructions.md，并要求助手将其作为任务指导。
+   @D:\taiguli\PMP\agent-skill\copilot-instructions.md，并要求助手将其作为任务指导。
    读取引用文件不等于激活。若此上下文不应影响其他项目，应优先使用项目本地技能。
    支持的技能根目录还包括仓库内的 .claude\skills 和 .agents\skills，
    以及用户主目录下的 .copilot\skills 和 .agents\skills。
@@ -66,15 +67,15 @@ prompts\pmp-tests.prompt.md              测试任务输入模板
 
 CLI 使用示例（发送前替换尖括号中的占位内容）
 ------------------------------------------------------------
-请将 @D:\taiguli\PMP\agent\prompts\pmp-feature.prompt.md 作为任务模板执行。
-请应用 @D:\taiguli\PMP\agent\copilot-instructions.md，并遵循
-@D:\taiguli\PMP\agent\skills\pmp-java-feature\SKILL.md。
+请将 @D:\taiguli\PMP\agent-skill\prompts\pmp-feature.prompt.md 作为任务模板执行。
+请应用 @D:\taiguli\PMP\agent-skill\copilot-instructions.md，并遵循
+@D:\taiguli\PMP\agent-skill\skills\pmp-java-feature\SKILL.md。
 需求：<描述需求>；范围：<文件或路由>；
 验收标准：<可观察的行为>；已授权的接口契约变更：无。
 
-请将 @D:\taiguli\PMP\agent\prompts\pmp-analyze.prompt.md 作为任务模板执行。
-请应用 @D:\taiguli\PMP\agent\copilot-instructions.md，并遵循
-@D:\taiguli\PMP\agent\skills\pmp-java-diagnose\SKILL.md。
+请将 @D:\taiguli\PMP\agent-skill\prompts\pmp-analyze.prompt.md 作为任务模板执行。
+请应用 @D:\taiguli\PMP\agent-skill\copilot-instructions.md，并遵循
+@D:\taiguli\PMP\agent-skill\skills\pmp-java-diagnose\SKILL.md。
 问题：解释邮件模板的查询流程及向外部服务委托处理的过程。
 范围：EmailTemplateController、IEmailTemplateService、
 EmailTemplateServiceImpl 和 EmailTemplateDataClient。不得编辑或执行。
@@ -82,6 +83,14 @@ EmailTemplateServiceImpl 和 EmailTemplateDataClient。不得编辑或执行。
 只读审查请使用 pmp-review.prompt.md 搭配 pmp-java-review，并指定差异或文件范围。
 测试覆盖任务请使用 pmp-tests.prompt.md 搭配 pmp-java-tests；
 若不希望编辑或执行，请选择“仅提出方案”。
+
+C# 转 Java 使用 pmp-java-convert-from-csharp，不使用一般功能开发技能。
+技能目录与 name 统一使用 csharp，不使用带 # 的旧名称。
+同步到项目后，在 CLI 中运行 /skills reload，然后运行
+/skills info pmp-java-convert-from-csharp 确认加载。
+请求示例：请使用 /pmp-java-convert-from-csharp，将 <C# 源文件或目录>
+中的 <业务方法> 转换到 <目标 PMP 仓库及模块>；保留原业务逻辑与接口契约，
+完成后再次逐项对照原代码。必须替换上述占位内容再发送。
 
 验证与操作说明
 ------------------------------
@@ -94,15 +103,15 @@ EmailTemplateServiceImpl 和 EmailTemplateDataClient。不得编辑或执行。
 
 结构设计说明
 ------------------
-共享约束集中在一个简短的指令文件中。四个职责明确的技能分别负责实现、调查、
-审查和测试；分析复用诊断技能，避免重复。提示词用于收集任务输入并声明默认值，
+共享约束集中在一个简短的指令文件中。五个职责明确的技能分别负责实现、调查、
+审查、测试和 C# 转 Java；分析复用诊断技能，避免重复。提示词用于收集任务输入并声明默认值，
 而非规定工具操作清单。明确适用条件和排除条件，可减少意外修改。
 以聚焦的证据和完成标准，取代强制全仓扫描、形式化的计划审批，
 以及没有证据支持的优化结论。
 
 简要手动验收场景
 ---------------------------------
-- 技能发现：完成可选配置后，用 list/info 按四个技能的准确名称逐一检查。
+- 技能发现：完成可选配置后，用 list/info 按五个技能的准确名称逐一检查。
   另行确认指令已加载；仅列出技能还不够。
 - 分析：要求解释邮件模板流程。预期引用源码路径，不编辑、不执行，
   也不凭空添加数据库或 AMQP 消费者。

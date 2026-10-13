@@ -37,8 +37,11 @@ description: "将用户提供或指定的 C#/.NET 业务代码转换为 PMP Java
 - 不要仅因存在某项依赖就引入持久化或消息架构。
 - 外部数据访问沿用目标服务既有 Feign 委托；只有目标数据服务确有仓储职责时才实现 repository，不在通知或业务服务中新增本地数据库/JPA 层。
 - 保持公共接口契约不变，除非所请求的行为确实需要变更且已获得明确授权。
+- 新增或修改入参 DTO/Request 时，不自动添加 `@NotNull`、`@NotBlank`、`@Pattern`、`@Min` 等 Bean Validation 校验注解，也不为此新增 `@Valid`/`@Validated`；必要的业务条件检查沿用业务服务现有方式。既有且与任务无关的校验不擅自删除。
+- 报表日期入参应先参考目标仓库同类报表的类型、JSON 绑定和跨层传递方式。`reportMonth` 沿用既有 `LocalDate` 等日期类型，不因界面显示 `MM-yyyy` 而定义成 `String`，也不自行增加字符串月份解析；DTO、Feign、消息载荷及业务服务应保持类型一致。
 - 不增加宽泛异常捕获、静默降级或成功形状的兜底返回；沿用现有异常处理，不记录密钥或敏感载荷。
 - 在 `pmp-data-lease` 中新增/修改仓储查询时，禁止使用 `@Query` 的 HQL/JPQL/原生 SQL 字符串（含 `join fetch`）；一律通过 `XxxRepositoryCustom`/`XxxRepositoryImpl` + `CriteriaBuilder` 实现，详见共享约束文件。
+- 业务查询的编排与结果组装一律放在 `pmp-service-lease`：由业务服务分别调用数据服务的单一职责查询，再完成关联、分组、聚合、计算和业务模型组装。`pmp-data-lease` 只提供简单、贴近原始数据的查询；禁止在一个数据服务方法或 Repository 方法中执行多个独立查询并拼装报表或业务结果，也不得将此类编排隐藏在辅助方法中。单次查询所需的关联、子查询以及既有分页查询的计数不属于业务查询编排。
 - 涉及"当前日期"默认值的设置（如查询参数缺省时补默认报表日期等）一律放在 `pmp-service-lease` 层完成，不要放在 `pmp-channel-lease` 层；且必须通过 `com.spl.pmp.service.lease.utils.DateUtils.getCurrentLocalDate()` 获取当前日期，禁止直接使用 `LocalDate.now()`。
 - 编写/修改代码时不要自动添加注释或 `@Schema(description = ...)` 等接口文档注解；仅在用户明确要求时才添加。
 - 遵守 SonarQube 常见规则：不要使用 `record` 等受限标识符作为变量/参数名（S6213）；日期字面量优先使用 `java.time.Month` 等枚举常量而非裸整数（S8694）。
@@ -53,4 +56,3 @@ description: "将用户提供或指定的 C#/.NET 业务代码转换为 PMP Java
 
 ## 证据与完成标准
 交付时简要说明完成的转换、源代码与 Java 实现的对应关系、接口契约影响及经授权的行为差异。源逻辑覆盖和相关检查均完成才可声称完成；缺失源码、私有依赖解析失败或其他阻碍必须如实说明，不能将未执行或受阻的验证描述为成功。不得为解决依赖问题安装、更改或泄露凭据。
-

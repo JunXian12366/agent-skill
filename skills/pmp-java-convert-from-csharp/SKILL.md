@@ -42,8 +42,11 @@ description: "将用户提供或指定的 C#/.NET 业务代码转换为 PMP Java
 - 不增加宽泛异常捕获、静默降级或成功形状的兜底返回；沿用现有异常处理，不记录密钥或敏感载荷。
 - 在 `pmp-data-lease` 中新增/修改仓储查询时，禁止使用 `@Query` 的 HQL/JPQL/原生 SQL 字符串（含 `join fetch`）；一律通过 `XxxRepositoryCustom`/`XxxRepositoryImpl` + `CriteriaBuilder` 实现，详见共享约束文件。
 - 业务查询的编排与结果组装一律放在 `pmp-service-lease`：由业务服务分别调用数据服务的单一职责查询，再完成关联、分组、聚合、计算和业务模型组装。`pmp-data-lease` 只提供简单、贴近原始数据的查询；禁止在一个数据服务方法或 Repository 方法中执行多个独立查询并拼装报表或业务结果，也不得将此类编排隐藏在辅助方法中。单次查询所需的关联、子查询以及既有分页查询的计数不属于业务查询编排。
+- `pmp-data-lease` 对外返回的 VO 及其行数据类型应定义为独立顶级类，单独存放在相应 model/vo 包下，使用有业务含义的名称；不要把行 VO 定义成另一个 VO 的 `static class`，也不要返回 `TenancyExpiryScheduleReportRawDataVo.VacantUnitRow` 这类嵌套类型。提取时保留字段、构造器及 JSON 结构，同步更新 Controller、Service、Repository 投影、Feign 契约和测试中的类型与引用。此规则优先于将此类内部数据模型改写为嵌套 `record` 的建议。
+- 不为方便报表查询而自动给已有实体添加集合关联或反向关联。尤其不得给 `LeaseEntity` 新增 `leaseTurnoverRents`；需要的原始数据应分别查询，并在业务服务组装，保持原有实体映射不变。
 - 涉及"当前日期"默认值的设置（如查询参数缺省时补默认报表日期等）一律放在 `pmp-service-lease` 层完成，不要放在 `pmp-channel-lease` 层；且必须通过 `com.spl.pmp.service.lease.utils.DateUtils.getCurrentLocalDate()` 获取当前日期，禁止直接使用 `LocalDate.now()`。
 - 编写/修改代码时不要自动添加注释或 `@Schema(description = ...)` 等接口文档注解；仅在用户明确要求时才添加。
+- 新增实体字段常量时，名称使用实体类名去掉 `Entity` 后的名称作为前缀，再拼接字段名，并转换为大写下划线格式，避免与继承的常量重名。例如 `LeasePCExclusionPeriodEntity` 的 `remarks` 定义为 `LEASE_PC_EXCLUSION_PERIOD_REMARKS = "remarks"`；常量值仍为真实属性名，重命名时同步更新所有引用。
 - 遵守 SonarQube 常见规则：不要使用 `record` 等受限标识符作为变量/参数名（S6213）；日期字面量优先使用 `java.time.Month` 等枚举常量而非裸整数（S8694）。
 - 遵守以下常见 SonarQube 规则（"认知复杂度"S3776 规则除外，不因追求降低复杂度而做大范围重构）：重复字面量应引用已定义常量而非硬编码（S1192）；不留下未依附任何声明的悬空 Javadoc（S8491）；同一循环体内 `break`/`continue` 总数不超过 1 条，多个退出条件应合并为一个组合布尔条件（S135）；仅承载不可变字段的内部静态类，在确认访问器未被外部直接调用后可改写为 Java `record`（S6218 类建议）；`java.time.*`/`BigDecimal`/`Optional` 等 value-based 类型比较一律用 `.equals()` 而非 `==`/`!=`（`null` 判断除外，S8696）；外层 if 语句体内若只有一个内层 if（无其他语句）应合并为组合 `&&` 条件（S1066）。
 - 代码中不要使用带完整包名的内联类引用（如 `com.spl.pmp.service.lease.report.utils.AsposeExcelUtils.CellStyleConfig`）；应通过 `import` 引入类型后使用简名（嵌套类沿用项目既有写法，如 `import ...AsposeExcelUtils;` 后使用 `AsposeExcelUtils.CellStyleConfig`）。
